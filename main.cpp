@@ -75,6 +75,8 @@ int main(int argc, char *argv[]) {
 
     const auto is_init_stage = strcmp(argv[1], "init") == 0;
     const auto is_boot_completed_stage = strcmp(argv[1], "boot_completed") == 0;
+    const auto is_unlock = strcmp(argv[1], "unlock") == 0;
+    const auto is_lock = strcmp(argv[1], "lock") == 0;
 
     const auto config = load_config();
     const auto build_fingerprint = config.find("BUILD_FINGERPRINT");
@@ -143,7 +145,7 @@ int main(int argc, char *argv[]) {
         property_override(property_list("ro.product.", "name"), product_name->second.c_str());
     }
 
-    if (is_boot_completed_stage) {
+    if (is_boot_completed_stage || is_lock) {
         property_override("ro.boot.flash.locked", "1");
         property_override("ro.boot.vbmeta.device_state", "locked");
         property_override("vendor.boot.vbmeta.device_state", "locked");
@@ -152,6 +154,16 @@ int main(int argc, char *argv[]) {
         property_override("ro.boot.veritymode", "enforcing");
         property_override("ro.is_ever_orange", "0");
         property_override(property_list("ro.", "warranty_bit"), "0");
+    }
+
+    if (is_unlock) {
+        property_override("ro.boot.flash.locked", "0");
+        property_override("ro.boot.vbmeta.device_state", "unlocked");
+        property_override("vendor.boot.vbmeta.device_state", "unlocked");
+        property_override("ro.boot.verifiedbootstate", "orange");
+        property_override("vendor.boot.verifiedbootstate", "orange");
+        property_override("ro.boot.veritymode", "disabled");
+        property_override("ro.is_ever_orange", "1");
     }
 
     return 0;
